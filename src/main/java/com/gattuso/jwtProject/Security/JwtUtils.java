@@ -2,6 +2,7 @@ package com.gattuso.jwtProject.Security;
 
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
@@ -29,7 +30,7 @@ public class JwtUtils {
     }
 
     //Validate token
-    public boolean isTokenValid(String token){
+    public boolean isTokenValid(String token) throws ExpiredJwtException {
         try{
             Jwts.parserBuilder()
                     .setSigningKey(getSignatureKey())
@@ -38,7 +39,14 @@ public class JwtUtils {
                     .getBody();
             return true;
         }
+        catch (ExpiredJwtException ex){
+            System.out.println(ex.getLocalizedMessage());
+            System.out.println("1");
+            return false;
+        }
         catch (Exception ex){
+            System.out.println(ex.getLocalizedMessage());
+            System.out.println("2");
             return false;
         }
     }

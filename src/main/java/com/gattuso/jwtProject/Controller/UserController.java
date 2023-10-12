@@ -1,12 +1,12 @@
 package com.gattuso.jwtProject.Controller;
 
 
-import com.gattuso.jwtProject.Model.RoleEntity;
-import com.gattuso.jwtProject.Model.UserDto;
-import com.gattuso.jwtProject.Model.UserEntity;
+import com.gattuso.jwtProject.Model.*;
 import com.gattuso.jwtProject.Repository.RoleRepository;
 import com.gattuso.jwtProject.Repository.UserRepository;
 import com.gattuso.jwtProject.Security.ERole;
+import com.gattuso.jwtProject.Security.JwtUtils;
+import com.gattuso.jwtProject.Service.RefreshTokenService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -26,6 +26,10 @@ public class UserController {
 
     private UserRepository userRepository;
     private PasswordEncoder encoder ;
+    private JwtUtils jwtUtils;
+    private RefreshTokenService refreshTokenService;
+
+
     @GetMapping("/hello")
     public String getHello(){
         return "hello not secured";
@@ -51,6 +55,20 @@ public class UserController {
 
         userRepository.save(userEntity);
         return new ResponseEntity<>(userEntity,HttpStatus.OK);
+    }
+
+    @PostMapping("/refresh-token")
+    public JwtResponseDto refreshTokenResponse(@RequestBody JwtRequestDto jwtRequestDto){
+       return refreshTokenService.findRefreshToken(jwtRequestDto.getRefreshToken())
+                .map(refreshTokenService::verifyExpirationRefreshToken)
+                .map(RefreshTokenEntity::getUserEntity)
+                .map(userEntity -> {
+                    String newAccessToken = jwtUtils.generateAccessToken(userEntity.getUsername());
+                    return JwtResponseDto.builder()
+                            .refreshToken(jwtRequestDto.getRefreshToken())
+                            .accessToken(newAccessToken)
+                            .build();
+                }).orElseThrow(()->new RuntimeException("Refresh token is not in the database"));
     }
 
     @DeleteMapping("/delete-user/{id}")

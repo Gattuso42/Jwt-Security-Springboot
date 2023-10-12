@@ -36,5 +36,7 @@ public class UserEntity {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private List<RoleEntity> roleEntities;
+    @OneToOne(mappedBy = "userEntity",cascade = CascadeType.REMOVE,orphanRemoval = true)
+    private RefreshTokenEntity refreshTokenEntity;
 
 }

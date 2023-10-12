@@ -4,6 +4,7 @@ package com.gattuso.jwtProject.Security.Filters;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gattuso.jwtProject.Model.UserEntity;
 import com.gattuso.jwtProject.Security.JwtUtils;
+import com.gattuso.jwtProject.Service.RefreshTokenService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,6 +29,9 @@ import java.util.Map;
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
     private JwtUtils jwtUtils;
+    private RefreshTokenService refreshTokenService;
+
+
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request,
                                                 HttpServletResponse response) throws AuthenticationException {
@@ -52,9 +56,11 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         User user = (User) authResult.getPrincipal();
         String token = jwtUtils.generateAccessToken(user.getUsername());
         response.addHeader("Authorization",token);
+        String refreshToken = refreshTokenService.createRefreshToken(user.getUsername()).getRefreshToken();
 
         Map<String,Object>httpResponse = new HashMap<>();
         httpResponse.put("token",token);
+        httpResponse.put("refreshToken",refreshToken);
         httpResponse.put("Message","Successful Authentication");
         httpResponse.put("Username",user.getUsername());
 

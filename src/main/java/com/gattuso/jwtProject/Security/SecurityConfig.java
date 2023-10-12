@@ -3,6 +3,7 @@ package com.gattuso.jwtProject.Security;
 
 import com.gattuso.jwtProject.Security.Filters.JwtAuthenticationFilter;
 import com.gattuso.jwtProject.Security.Filters.JwtAuthorizationFilter;
+import com.gattuso.jwtProject.Service.RefreshTokenService;
 import com.gattuso.jwtProject.Service.UserDetailServiceImpl;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,10 +38,13 @@ public class SecurityConfig {
     @Autowired
     private JwtUtils jwtUtils;
 
+    @Autowired
+    RefreshTokenService refreshTokenService;
+
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity,AuthenticationManager authenticationManager) throws Exception {
 
-        JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(jwtUtils);
+        JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(jwtUtils,refreshTokenService);
 //        jwtAuthenticationFilter.setAuthenticationManager(authenticationProvider());
         jwtAuthenticationFilter.setAuthenticationManager(authenticationManager);
         jwtAuthenticationFilter.setFilterProcessesUrl("/login");
@@ -50,6 +54,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers("/hello").permitAll();
                     auth.requestMatchers("/create-user").permitAll();
+                    auth.requestMatchers("/refresh-token").permitAll();
                     auth.anyRequest().authenticated();
                 })
                 .addFilter(jwtAuthenticationFilter)
